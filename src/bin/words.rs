@@ -10,6 +10,8 @@ struct Cli {
     input: String,
 }
 
+// rust-bert seems to use Parts of Speech tagging labels, that may be this:
+// https://cs.nyu.edu/~grishman/jet/guide/PennPOS.html
 fn tag() -> () {
     //    Set-up model
     let pos_model = POSModel::new(Default::default()).expect("default POSModel");
