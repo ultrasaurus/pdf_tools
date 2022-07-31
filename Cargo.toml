@@ -10,3 +10,4 @@ pdf_encoding = "0.3.0"
 euclid = "0.22.6"
 log = "*"
 clap = {version = "3.1.7", features = ["derive"]}
+rust-bert = "0.17.0"
