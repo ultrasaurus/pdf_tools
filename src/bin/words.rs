@@ -1,3 +1,5 @@
+// find all adjectives in PDF file
+// for usage:  cargo run --bin words -- --help
 use clap::Parser;
 use pdf::file::File;
 use pdf_tools::page_text;
@@ -9,6 +11,10 @@ struct Cli {
     /// PDF input file
     #[clap(short, long, value_parser, default_value = "../hello-world.pdf")]
     input: String,
+
+    /// how many pages to process
+    #[clap(short, long, value_parser)]
+    count: Option<usize>,
 }
 
 struct WordMap {
@@ -49,11 +55,11 @@ impl WordMap {
 
         //    Run model
         let output = pos_model.predict(&input);
-        for (pos, pos_tag) in output[0].iter().enumerate() {
+        for (_pos, pos_tag) in output[0].iter().enumerate() {
             if WordMap::is_adjective(&pos_tag.label) {
                 self.add_word(&pos_tag.word);
             }
-            println!("{} - {:?}", pos, pos_tag);
+            //println!("{} - {:?}", pos, pos_tag);
         }
         {}
     }
@@ -74,16 +80,34 @@ fn main() {
     let mut words = WordMap::new();
 
     let file = File::open(&input).expect("failed to read PDF");
-    for (page_num, page) in file.pages().enumerate() {
-        if let Ok(page) = page {
-            println!("=== PAGE {} ===\n", page_num + 1);
-            if let Ok(text) = page_text(&page, &file) {
-                println!("{}", text);
-                words.tag(&text);
-            } else {
-                println!("ERROR");
+    let count = cli.count.unwrap_or(file.pages().count());
+
+    let mut pages = file.pages();
+
+    let mut page_num: usize = 0;
+    while page_num < count {
+        let option_result = pages.next();
+        match option_result {
+            None => break,
+            Some(page_result) => {
+                match page_result {
+                    Ok(page) => {
+                        println!("=== PAGE {} ===\n", page_num + 1);
+                        if let Ok(text) = page_text(&page, &file) {
+                            //println!("{}", text);
+                            words.tag(&text);
+                        } else {
+                            println!("ERROR");
+                        }
+                        println!();
+                        page_num += 1;
+                    }
+                    Err(e) => {
+                        println!("error reading page {:?}", e);
+                        break;
+                    }
+                }
             }
-            println!();
         }
     }
     words.print();
