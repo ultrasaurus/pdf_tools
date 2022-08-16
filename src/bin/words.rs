@@ -51,7 +51,7 @@ impl WordMap {
         let pos_model = POSModel::new(Default::default()).expect("default POSModel");
 
         //let input = ["Bob is arrogant. Maria is confident."];
-        let input = [input_str];
+        let input = [input_str.to_lowercase()];
 
         //    Run model
         let output = pos_model.predict(&input);
@@ -68,8 +68,11 @@ impl WordMap {
         if self.map.keys().count() == 0 {
             println!("no adjectives found");
         }
-        for (k, v) in self.map {
-            println!("{}\t{}", v, k);
+        let mut list: Vec<(&String, &usize)> = self.map.iter().collect();
+        list.sort_by(|a, b| b.1.cmp(a.1));
+
+        for (word, count) in list {
+            println!("{}\t{}", word, count);
         }
     }
 }
@@ -92,14 +95,13 @@ fn main() {
             Some(page_result) => {
                 match page_result {
                     Ok(page) => {
-                        println!("=== PAGE {} ===\n", page_num + 1);
+                        // println!("=== PAGE {} ===\n", page_num + 1);
                         if let Ok(text) = page_text(&page, &file) {
                             //println!("{}", text);
                             words.tag(&text);
                         } else {
                             println!("ERROR");
                         }
-                        println!();
                         page_num += 1;
                     }
                     Err(e) => {
